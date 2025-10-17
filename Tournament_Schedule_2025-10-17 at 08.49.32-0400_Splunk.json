@@ -1,0 +1,333 @@
+{
+  "visualizations": {
+    "viz_tbdQkf4U": {
+      "type": "splunk.table",
+      "options": {
+        "tableFormat": {
+          "align": "> table |pick(alignment)"
+        },
+        "columnFormat": {
+          "Tour_Name": {
+            "width": 61
+          },
+          "Year": {
+            "width": 60
+          },
+          "TID": {
+            "width": 60
+          },
+          "Course_Name": {
+            "width": 86
+          },
+          "Tournament_Name": {
+            "width": 93
+          },
+          "short_name": {
+            "width": 115
+          },
+          "StartDate": {
+            "width": 94
+          },
+          "TimeZone": {
+            "width": 85
+          },
+          "ScoreLevel": {
+            "width": 71
+          },
+          "EndDate": {
+            "width": 80
+          },
+          "Truck": {
+            "width": 60
+          },
+          "ScoreBoard": {
+            "width": 76
+          },
+          "Course_Number": {
+            "width": 69
+          }
+        },
+        "count": 200,
+        "headerVisibility": "fixed"
+      },
+      "dataSources": {
+        "primary": "ds_TinnO6LV"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_Ty6BhrvE": {
+      "type": "ds.search",
+      "options": {
+        "enableSmartSources": true,
+        "refresh": "300s",
+        "refreshType": "delay",
+        "query": "| inputlookup TournamentInfo.csv\n| inputlookup append=t TournamentInfoArchive.csv",
+        "queryParameters": {
+          "earliest": "@w0",
+          "latest": "now"
+        }
+      },
+      "name": "parent_search"
+    },
+    "ds_DMGZsESJ": {
+      "type": "ds.chain",
+      "options": {
+        "enableSmartSources": true,
+        "extend": "ds_Ty6BhrvE",
+        "query": "| stats count by Tour_Name"
+      },
+      "name": "chain_Tour_search"
+    },
+    "ds_TinnO6LV": {
+      "type": "ds.chain",
+      "options": {
+        "enableSmartSources": true,
+        "extend": "ds_Ty6BhrvE",
+        "query": "| search Tour_Name=\"$Tour$\"\n| search Week IN ($Weeks$)\n| search Year=$Year$\n| search Truck=$Truck$\n| search Scoreboard_Truck=$Scoreboard_Truck$\n| search TZ_desc=$TZ$\n| table TID,Tour_Name,Tournament_Name,Truck,Scoreboard_Truck,Course_Name,Course_Number,ScoreLevel,StartDate,EndDate,TZ_desc,Week,City,State,Country"
+      },
+      "name": "chain_table_search"
+    },
+    "ds_obRlqkPj": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_Ty6BhrvE",
+        "query": "| stats count by Year",
+        "enableSmartSources": true
+      },
+      "name": "chain_Year_search"
+    },
+    "ds_IrNzZmiH": {
+      "type": "ds.chain",
+      "options": {
+        "enableSmartSources": true,
+        "extend": "ds_Ty6BhrvE",
+        "query": "| stats count by Week"
+      },
+      "name": "chain_Week_search"
+    },
+    "ds_pMw6l0Kk": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_Ty6BhrvE",
+        "enableSmartSources": true,
+        "query": "| stats count by Truck"
+      },
+      "name": "chain_Truck_search"
+    },
+    "ds_vNJj8oxP": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_Ty6BhrvE",
+        "enableSmartSources": true,
+        "query": "| stats count by Scoreboard_Truck"
+      },
+      "name": "chain_Scoreboard_Truck_search"
+    },
+    "ds_7MqTPuGQ": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_Ty6BhrvE",
+        "enableSmartSources": true,
+        "query": "| stats count by TZ_desc"
+      },
+      "name": "Search_1"
+    }
+  },
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {
+            "latest": "$global_time.latest$",
+            "earliest": "$global_time.earliest$"
+          }
+        }
+      }
+    }
+  },
+  "inputs": {
+    "input_cBdzxzXc": {
+      "options": {
+        "items": ">frame(label, value) | prepend(formattedStatics) | objects()",
+        "token": "Tour",
+        "defaultValue": "*"
+      },
+      "title": "Tour to View",
+      "type": "input.dropdown",
+      "dataSources": {
+        "primary": "ds_DMGZsESJ"
+      },
+      "context": {
+        "formattedConfig": {
+          "number": {
+            "prefix": ""
+          }
+        },
+        "formattedStatics": ">statics | formatByType(formattedConfig)",
+        "statics": [
+          [
+            "All"
+          ],
+          [
+            "*"
+          ]
+        ],
+        "label": ">primary | seriesByName(\"Tour_Name\") | renameSeries(\"label\") | formatByType(formattedConfig)",
+        "value": ">primary | seriesByName(\"Tour_Name\") | renameSeries(\"value\") | formatByType(formattedConfig)"
+      }
+    },
+    "input_bRVd06oM": {
+      "options": {
+        "items": ">frame(label, value) | prepend(formattedStatics) | objects()",
+        "defaultValue": "2025",
+        "token": "Year"
+      },
+      "title": "Year to View",
+      "type": "input.dropdown",
+      "dataSources": {
+        "primary": "ds_obRlqkPj"
+      },
+      "context": {
+        "formattedConfig": {
+          "number": {
+            "prefix": ""
+          }
+        },
+        "formattedStatics": ">statics | formatByType(formattedConfig)",
+        "statics": [
+          [
+            "All"
+          ],
+          [
+            "*"
+          ]
+        ],
+        "label": ">primary | seriesByName(\"Year\") | renameSeries(\"label\") | formatByType(formattedConfig)",
+        "value": ">primary | seriesByName(\"Year\") | renameSeries(\"value\") | formatByType(formattedConfig)"
+      }
+    },
+    "input_Oe9WwTPY": {
+      "options": {
+        "items": [
+          {
+            "label": "All",
+            "value": "*"
+          }
+        ],
+        "defaultValue": "*",
+        "token": "Truck"
+      },
+      "title": "Truck to View",
+      "type": "input.dropdown",
+      "dataSources": {
+        "primary": "ds_pMw6l0Kk"
+      }
+    },
+    "input_rWVJ0zc1": {
+      "options": {
+        "items": [
+          {
+            "label": "All",
+            "value": "*"
+          }
+        ],
+        "defaultValue": "*",
+        "token": "Scoreboard_Truck"
+      },
+      "title": "Scoreboard Truck to View",
+      "type": "input.dropdown",
+      "dataSources": {
+        "primary": "ds_vNJj8oxP"
+      }
+    },
+    "input_alH0Ay9i": {
+      "options": {
+        "items": [
+          {
+            "label": "All",
+            "value": "*"
+          }
+        ],
+        "defaultValue": "*",
+        "token": "TZ"
+      },
+      "title": "TZ to View",
+      "type": "input.dropdown",
+      "dataSources": {
+        "primary": "ds_7MqTPuGQ"
+      }
+    },
+    "input_J5Yl9UUv": {
+      "options": {
+        "items": [
+          {
+            "label": "All",
+            "value": "*"
+          },
+          {
+            "label": "Advance Week",
+            "value": "\"Advance Week\""
+          },
+          {
+            "label": "Tournament Week",
+            "value": "\"Tournament Week\""
+          }
+        ],
+        "defaultValue": [
+          "*"
+        ],
+        "token": "Weeks"
+      },
+      "title": "Week(s)",
+      "type": "input.multiselect",
+      "dataSources": {}
+    }
+  },
+  "description": "",
+  "title": "Tournament_Schedule",
+  "layout": {
+    "tabs": {
+      "items": [
+        {
+          "layoutId": "layout_1",
+          "label": "New tab"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1920,
+          "display": "fit-to-width"
+        },
+        "structure": [
+          {
+            "item": "viz_tbdQkf4U",
+            "type": "block",
+            "position": {
+              "x": 10,
+              "y": 0,
+              "w": 1920,
+              "h": 900
+            }
+          }
+        ]
+      }
+    },
+    "globalInputs": [
+      "input_cBdzxzXc",
+      "input_bRVd06oM",
+      "input_J5Yl9UUv",
+      "input_Oe9WwTPY",
+      "input_rWVJ0zc1",
+      "input_alH0Ay9i"
+    ]
+  },
+  "applicationProperties": {
+    "hideEdit": false,
+    "hideExport": false,
+    "hideOpenInSearch": false
+  }
+}
